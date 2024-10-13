@@ -11,19 +11,25 @@ using namespace std;
 
 constexpr int number_of_groups = 9;
 
-struct Statistics_Data {
+struct StatisticsData {
 private:
 	unordered_map<double, int> count;
 
 public:
-	double mean, median;
+	double mean, median, s_x;
+	double sigma;
 	vector<double> mode;
-	Statistics_Data(const vector<double>& v) {
+	StatisticsData(const vector<double>& v) {
 		for (auto x : v) {
 			++count[x];
 			mean += x;
 		}
 		mean /= v.size();
+		for (auto x : v) {
+			s_x += (x - mean) * (x - mean);
+			sigma += (x - mean) * (x - mean);
+		}
+		s_x = sqrt(s_x) / v.size(), sigma = sqrt(sigma) / (v.size() - 1);
 		if (v.size() & 1) {
 			median = v[v.size() / 2];
 		} else {
@@ -49,14 +55,14 @@ string interval_string(double l, double r) {
 int main(int argc, const char** argv) {
 	string file_name = "data";
 	if (argc >= 2) file_name = argv[1];
-	ifstream fin(file_name + ".txt"); ofstream fout(file_name + "_result.csv");
+	ifstream fin(file_name); ofstream fout(file_name + "_result.csv");
 	fout << fixed << setprecision(4);
 	vector<double> v;
 	for (double buf; fin >> buf; ) {
 		v.push_back(buf);
 	}
-	auto dat = Statistics_Data(v);
-	fout << "Mean," << dat.mean << ",Median," << dat.median << ",Mode,";
+	auto dat = StatisticsData(v);
+	fout << "Mean," << dat.mean << ",Median," << dat.median << ",variance (s^2)," << dat.sigma * dat.sigma << ",Mode,";
 	for (auto x : dat.mode) {
 		fout << x << " ";
 	}
